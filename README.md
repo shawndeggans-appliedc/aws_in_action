@@ -187,6 +187,54 @@ Here's a basic overview of the actual template:
 - You pay for your infrastructure based on usage. For example, you pay for a virtual machine per second of usage.
 - The infrastructure required to run WordPress consists of several parts, such as virtual machines, load balancers, databases, and network filesystems.
 - The whole infrastructure can be deleted with one click. The process is powered by automation.
+#### Chapter 3
+Today we're working with EC2 instances. We're going to build virtual machines. 
+Different EC2 instance types by family:
+- T family—Cheap, moderate baseline performance with the ability to burst to higher performance for short periods of time
+- M family—General purpose, with a balanced ration of CPU and memory
+- C family—Computing optimized, high CPU performance
+- R family—Memory optimized, with more memory than CPU power compared to the M family
+- X family—Extensive capacity with a focus on memory, up to 1952 GB memory and 128 virtual cores
+- D family—Storage optimized, offering huge HDD capacity
+- I family—Storage optimized, offering huge SSD capacity
+- P, G, and CG family—Accelerated computing based on GPUs (graphics processing units)
+- F family—Accelerated computing based on FPGAs (field-programmable gate arrays)
+Most of this chapter used the console to set up and build out EC2 instances. I didn't walk through the process of building out an Apache Server, but that was an option. 
+Here is a summary of what we covered today:
+- When launching a virtual machine on AWS, you chose between a wide variety of operating systems: Amazon Linux, Ubuntu, Windows, and many more.
+- Modifying the size of a virtual machine is simple: stop the virtual machine, modify the instance type—which defines the number of CPUs as well as the amount of memory and storage—and start the virtual machine.
+- Using logs and metrics can help you to monitor and debug your virtual machine.
+- AWS offers data centers all over the world. Starting VMs in Sydney, Australia, works the same as starting a machine in northern Virginia.
+- Choose a data center by considering network latency, legal requirements, and costs, as well as available features.
+- Allocating and associating a public IP address to your virtual machine gives you the flexibility to replace a VM without changing the public IP address.
+- Committing to a certain compute usage for one or three years reduces the cost of virtual machines through buying Savings Plans.
+- Use spare capacity at significant discount but with the risk of AWS terminating your virtual machine in case the capacity is needed elsewhere.
+#### Chapter 4
+The command line, SDKs, and CloudFormation
+This is the part of the book I've been looking forward to. We finally start learning the automation tools, which is what I've been wanting to dive deeper into for a while. 
+Most of this chapter is related to using the CLI. Here are some of the basics around setting it up
+*Linux x86*
+```bash
+$ curl "https:/ /awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+➥ -o "awscliv2.zip"
+$ unzip awscliv2.zip
+$ sudo ./aws/install
+```
+*Linux ARM*
+```bash
+$ curl "https:/ /awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" \
+➥ -o "awscliv2.zip"
+$ unzip awscliv2.zip
+$ sudo ./aws/install
+```
+*MacOS and Windows*
+Download and install the CLI from [CLI](https://awscli.amazonaws.com/AWSCLIV2.pkg](https://awscli.amazonaws.com/AWSCLIV2.pkg)
+*Configure the CLI*
+To use the CLI, you'll need to authenticate. This can be done through the command line, but you'll need to create an IAM role to manage permissions.
+We're changing the way this is suggested in the book and focusing on setting it based on [AWS Recommendations](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
+The actual configuration requires the following values:
+
+
 
 ## Relationships to Other Technologies/Concepts
 [Mind map or list showing connections to other areas of knowledge]
