@@ -231,10 +231,58 @@ $ sudo ./aws/install
 Download and install the CLI from [CLI](https://awscli.amazonaws.com/AWSCLIV2.pkg](https://awscli.amazonaws.com/AWSCLIV2.pkg)
 *Configure the CLI*
 To use the CLI, you'll need to authenticate. This can be done through the command line, but you'll need to create an IAM role to manage permissions.
-We're changing the way this is suggested in the book and focusing on setting it based on [AWS Recommendations](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
-The actual configuration requires the following values:
+*Basic information we need to add*
+```bash
+$ aws configure
+ AWS Access Key ID [None]:  AKIAIRUR3YLPOSVD7ZCA   ①
+ AWS Secret Access Key [None]: 
+➥ SSKIng7jkAKERpcT3YphX4cD87sBYgWVw2enqBj7        ②
+ Default region name [None]: us-east-1
+ Default output format [None]: json
+```
+That is not a real secret, but one that was made up.
+You can test this by checking on the instances in your region using:
+```bash
+aws ec2 describe-regions
+```
+You should get a json object with a list of regions. 
+The following will give you a list of running ec2 instances:
+```bash
+aws ec2 describe-instances --filters "Name=instance-type,Values=t2.micro"
+{
+  "Reservations": []
+}
+```
+**Getting Help**
+- `aws` `help`—Shows all available services
+- `aws` `<service>` `help`—Shows all actions available for a certain service
+- `aws` `<service>` `<action>` `help`—Shows all options available for the particular service action
 
+**Running a temporary virtual machine**
+One of the example scripts will run a virtual machine for us until we want to stop it. This is done through the command line. The IAM role we set up earlier when building out instances is used for this. The script is include in the `cli_scripts/virtualmachine.sh` file.
 
+It solves this use case:
+- Creating a virtual machine
+- Getting the ID of a virtual machine to connect via the Session Manager
+- Terminating the virtual machine if it’s no longer needed
+
+Another useful tool is JMESPath, which allows us to query values.
+```bash
+$ aws ec2 describe-images --filters \
+➥ "Name=name,Values=amzn2-ami-hvm-2.0.202*-x86_64-gp2" \
+➥ --query "Images[0].ImageId"
+"ami-146e2a7c"
+```
+This could also be outputted as text, if needed:
+```bash
+aws ec2 describe-images --filters \
+➥ "Name=name,Values=amzn2-ami-hvm-2.0.202*-x86_64-gp2" \
+➥ --query "Images[0].ImageId" --output text         ①
+ami-146e2a7c
+```
+
+#### Working with SDKs
+My next step will be to work with `nodecc`, which will require using DevBox on my local machine to install node. 
 
 ## Relationships to Other Technologies/Concepts
 [Mind map or list showing connections to other areas of knowledge]
