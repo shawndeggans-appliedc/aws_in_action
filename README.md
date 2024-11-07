@@ -234,9 +234,8 @@ To use the CLI, you'll need to authenticate. This can be done through the comman
 *Basic information we need to add*
 ```bash
 $ aws configure
- AWS Access Key ID [None]:  AKIAIRUR3YLPOSVD7ZCA   ①
- AWS Secret Access Key [None]: 
-➥ SSKIng7jkAKERpcT3YphX4cD87sBYgWVw2enqBj7        ②
+ AWS Access Key ID [None]: Your Access Key ID
+ AWS Secret Access Key [None]: Your Secret Access Key    
  Default region name [None]: us-east-1
  Default output format [None]: json
 ```
