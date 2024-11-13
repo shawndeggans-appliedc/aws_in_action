@@ -10,8 +10,9 @@ I'm starting my hands-on morning practice with this AWS book. I selected it, bec
 
 ## Core Concepts
 1. Cloud offers businesses flexible ways to use compute and storage that specifically fits their needs
-2. [Concept 2]
-3. [Concept 3]
+2. AWS Provides multiple ways to provision architecture, but the best is probably Infrastructure as Code
+3. CloudFormation is the best language and tool for AWS IaC 
+4. To better learn AWS, we should learn CloudFormation
 
 ## Notes
 
@@ -234,8 +235,9 @@ To use the CLI, you'll need to authenticate. This can be done through the comman
 *Basic information we need to add*
 ```bash
 $ aws configure
- AWS Access Key ID [None]: Your Access Key ID
- AWS Secret Access Key [None]: Your Secret Access Key    
+ AWS Access Key ID [None]:  AKIAIRUR3YLPOSVD7ZCA   ①
+ AWS Secret Access Key [None]: 
+➥ SSKIng7jkAKERpcT3YphX4cD87sBYgWVw2enqBj7        ②
  Default region name [None]: us-east-1
  Default output format [None]: json
 ```
@@ -282,6 +284,156 @@ ami-146e2a7c
 
 #### Working with SDKs
 My next step will be to work with `nodecc`, which will require using DevBox on my local machine to install node. 
+
+The goal for today is to get _Node Control Center for AWS_ (nodecc) built and running, I plan to use DevBox for this, so I'm going to do a little DevBox prep first.
+
+Based on our book, it looks like we're safe with whatever version of Node we want, as long as it's greater than `14.*`, so I'll use one of the Node projects using `devbox create --template nodejs-npm`
+
+Ok, so I got everything setup, but it's not launching for me. I'm not too interested in trying to get it working, so I'm skipping this to keep moving forward. I'll check the project in, but probably won't spend time on it. 
+
+#### Infrastructure as Code
+In this section of the chapter, we'll work on IaC. 
+The following from the book is the anatomy of a Cloud Formation template:
+1. _Format version_—The latest template format version is 2010-09-09, and this is currently the only valid value. Specify this version; the default is to use the latest version, which will cause problems if new versions are introduced in the future.
+2. _Description_—What is this template about?
+3. _Parameters_—Parameters are used to customize a template with values, for example, domain name, customer ID, and database password.
+4. _Resources_—A resource is the smallest block you can describe. Examples are a virtual machine, a load balancer, or an Elastic IP address.
+5. _Outputs_—An output is comparable to a parameter, but the other way around. An output returns details about a resource created by the template, for example, the public name of an EC2 instance.
+Here is a summary of the chapter as we wrap things up here:
+- Use the CLI, one of the SDKs, or CloudFormation to automate your infrastructure on AWS.
+- Infrastructure as Code describes the approach of programming the creation and modification of your infrastructure, including virtual machines, networking, storage, and more.
+- You can use the CLI to automate complex processes in AWS with scripts (Bash and PowerShell).
+- You can use SDKs for nine programming languages and platforms to embed AWS into your applications and create applications like nodecc.
+- CloudFormation uses a declarative approach in JSON or YAML: you define only the end state of your infrastructure, and CloudFormation figures out how this state can be achieved. The major parts of a CloudFormation template are parameters, resources, and outputs.
+
+_My thoughts on IaC and language selection_
+I've so far had experience working with Pulumi, Terraform, Bicep, and CloudFormation. I know there are good reasons to use something like Pulumi and Terraform for the state management, but some of these same types of tools are available for Azure and AWS. Meaning, there are ways to control cloud infrastructure drift that are similar to Pulumi and Terraform. 
+As of today 2024-11-08, I'm of the opinion that we shouldn't use Terraform (OpenTofu) or Pulumi, unless the client really wants that as a solution. Otherwise, I think all our IaC should be the native languages  of Bicep and CloudFormation. It's just simpler, and the languages are so well created for their purpose that it doesn't make much sense to me to add another layer of abstract thinking on top of an existing layer of abstract thinking, especially considering that I can't very well write one script and have it execute in both environments. These scripts are tightly coupled to the infrastructure they create, so doesn't it make more sense to use a DSL built for that environment. Anyway, thats my takeaway from today's work. 
+#### # Securing your system: IAM, security groups, and VPC
+- Who is responsible for security?
+- Keeping your software up-to-date
+- Controlling access to your AWS account with users and roles
+- Keeping your traffic under control with security groups
+- Using CloudFormation to create a private network
+This first section covers the responsibilities of AWS and the cloud user to security. 
+Additionally, the process of keeping EC2 instances updates is covered. A suggestion is to use AWS System Manager for updates.
+**Core Features Are:**
+- _Agent_—Preinstalled and autostarted on Amazon Linux 2 (also powers the Session Manager).
+- _Document_—Think of a document as a script on steroids. We use a prebuild document named `AWS-RunPatchBaseline` to install patches.
+- _Run Command_—Executes a document on an EC2 instance.
+- _Association_—Sends commands (via Run Command) to EC2 instances on a schedule or during startup (bundled into the capability named State Manager).
+- _Maintenance Window_—Sends commands (via Run Command) to EC2 instances on a schedule during a time window.
+- _Patch baseline_—Set of rules to approve patches for installation based on classification and severity. Luckily, AWS provides predefined patch baselines for various operating systems including Amazon Linux 2. The predefined patch baseline for Amazon Linux 2 approves all security patches that have a severity level of critical or important and all bug fixes. A seven-day waiting period exists after the release of a patch before approval
+
+**Identity vs. resource policies**
+
+IAM policies come in two types. _Identity policies_ are attached to users, groups, or roles. _Resource policies_ are attached to resources. Very few resource types support resource policies. One common example is the S3 bucket policy attached to S3 buckets.
+
+If a policy contains the property `Principal`, it is a resource policy. The `Principal` defines who is allowed to perform the action. Keep in mind that the principal can be set to public.
+
+[Service Authorization Reference](https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html)
+
+**Types of Policies**
+- _Managed policy_—If you want to create identity policies that can be reused in your account, a managed policy is what you’re looking for. There are two types of managed policies:
+    - _AWS managed policy_—An identity policy maintained by AWS. There are identity policies that grant admin rights, read-only rights, and so on.
+    - _Customer managed_—An identity policy maintained by you. It could be an identity policy that represents the roles in your organization, for example.
+- _Inline policy_—An identity policy that belongs to a certain IAM role, user, or group. An inline identity policy can’t exist without the IAM role, user, or group that it belongs to
+
+[An example of create a role and assigning it to EC2](https://s3.amazonaws.com/awsinaction-code3/chapter05/ec2-iam-role.yaml)
+
+**Users for authentication and groups to organize users**
+I added this to our source folder for scripts, but here is the code for adding an admin group.
+```shell
+aws iam create-group --group-name "admin"
+aws iam attach-group-policy --group-name "admin" \
+➥ --policy-arn "arn:aws:iam::aws:policy/AdministratorAccess"
+aws iam create-user --user-name "myuser"
+aws iam add-user-to-group --group-name "admin" --user-name "myuser"
+aws iam create-login-profile --user-name "myuser" --password '$Password'
+```
+Enabling MFA for all users:
+1. Open the IAM service in the Management Console.
+2. Choose Users at the left.
+3. Click the myuser user.
+4. Select the Security Credentials tab.
+5. Click the Manage link near the Assigned MFA Device.
+6. The wizard to enable MFA for the IAM user is the same one you used for enabling MFA for the AWS account root user.
+
+**Authenticating AWS resources with roles**
+
+We shouldn't create user IDs for resources or services in AWS, but instead we should assign them roles. These roles will determine what permissions they have. For instance, if an EC2 instance needs to shut itself down, it need permissions to do that. Any interaction with the AWS API requires some type of permission. 
+
+**Controlling Network Traffic**
+Most of networking is about controlling the flow of traffic. Where is it allowed to go and what rules are in place to stop or allow traffic. 
+
+**Security Groups to Control Traffic**
+
+A security group consists of a set of rules. Each rule allows network traffic based on the following:
+- Direction (inbound or outbound)
+- IP protocol (TCP, UDP, ICMP)
+- Port
+- Source/destination based on IP address, IP address range, or security group (works only within AWS)
+
+**Allowing traffic from a security group**
+Probably one of the more interesting ways to manage how traffic is manage is by allow traffic from one security group to another. 
+> It is possible to control network traffic based on whether the source or destination belongs to a specific security group. For example, you can say that a MySQL database can be accessed only if the traffic comes from your web servers, or that only your proxy servers are allowed to access the web servers.
+
+**Creating a VPC**
+
+- _Public subnets_—For all resources that need to be reachable from the internet, such as a load balancer of a internet-facing web application
+- _Private subnets_—For all resources that should not be reachable from the internet, such as an application server or a database system
+
+_I wanted to add some extra information about Security Groups and NACLs here._
+AWS VPC Security Groups and Network Access Control Lists (NACLs) both control network traffic, but they operate at different levels and have some key differences:
+
+1. **Level of Operation**:
+
+• **Security Groups** work at the instance level. They act as a virtual firewall for individual EC2 instances within a VPC.
+
+• **NACLs** work at the subnet level. They control traffic going into and out of entire subnets within a VPC.
+
+2. **Traffic Direction**:
+
+• **Security Groups** are stateful, meaning they automatically allow return traffic for any outgoing request. For example, if an instance sends a request, the response is allowed back automatically.
+
+• **NACLs** are stateless, so both inbound and outbound rules need to be explicitly defined. If you allow inbound traffic, you also need to allow outbound traffic for the return response.
+
+3. **Rules and Scope**:
+
+• **Security Groups** can only have “allow” rules, meaning you can specify what traffic is permitted, but there’s no explicit deny option.
+
+• **NACLs** can have both “allow” and “deny” rules, which means they offer more granular control over what traffic is explicitly permitted or blocked.
+
+In short, **use Security Groups to control instance-specific traffic** and **NACLs for broader subnet-level traffic control** within your AWS network.
+
+> We recommend you start with using security groups to control traffic. If you want to add an extra layer of security, you should use NACLs on top. But doing so is optional, in our opinion.
+
+**Interesting solutions for saving on NAT Gateway costs**
+- Moving your EC2 instances from the private subnet to a public subnet allows them to transfer data to the internet without using the NAT gateway. Use firewalls to strictly restrict incoming traffic from the internet.
+- If data is transferred over the internet to reach AWS services (such as Amazon S3 and Amazon DynamoDB), use gateway VPC endpoints. These endpoints allow your EC2 instances to communicate with S3 and DynamoDB directly and at no additional charge. Furthermore, most other services are accessible from private subnets via interface VPC endpoints (offered by AWS PrivateLink) with an hourly and bandwidth fee.
+
+**Summary**
+- AWS is a shared-responsibility environment in which security can be achieved only if you and AWS work together. You’re responsible for securely configuring your AWS resources and your software running on EC2 instances, whereas AWS protects buildings and host systems.
+- Keeping your software up-to-date is key and can be automated.
+- The Identity and Access Management (IAM) service provides everything needed for authentication and authorization with the AWS API. Every request you make to the AWS API goes through IAM to check whether the request is allowed. IAM controls who can do what in your AWS account. To protect your AWS account, grant only those permissions that your users and roles need.
+- Traffic to or from AWS resources like EC2 instances can be filtered based on protocol, port, and source or destination.
+- A VPC is a private network in AWS where you have full control. With VPCs, you can control routing, subnets, NACLs, and gateways to the internet or your company network via a VPN. A NAT gateway enables access to the internet from private subnets.
+- You should separate concerns in your network to reduce potential damage, for example, if one of your subnets is hacked. Keep every system in a private subnet that doesn’t need to be accessed from the public internet, to reduce your attackable surface.
+
+#### Automating operational tasks with Lambda
+
+This chapter covers:
+- Creating a Lambda function to perform periodic health checks of a website
+- Triggering a Lambda function with EventBridge events to automate DevOps tasks
+- Searching through your Lambda function’s logs with CloudWatch
+- Monitoring Lambda functions with CloudWatch alarms
+- Configuring IAM roles so Lambda functions can access other services
+
+> the word serverless is a bit of a misnomer. Whether you use a compute service such as AWS Lambda to execute your code, or interact with an API, there are still servers running in the background. The difference is that these servers are hidden from you. There’s no infrastructure for you to think about and no way to tweak the underlying operating system. Someone else takes care of the nitty-gritty details of infrastructure management, freeing your time for other things.
+
+—Peter Sbarski
+
+Return to here tomorrow: Building a website health check with AWS Lambda
 
 ## Relationships to Other Technologies/Concepts
 [Mind map or list showing connections to other areas of knowledge]
