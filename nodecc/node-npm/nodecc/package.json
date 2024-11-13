@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "aws-sdk": "2.1139.0",
+    "blessed": "0.1.81"
+  },
+  "devDependencies": {
+    "eslint": "8.15.0"
+  },
+  "scripts": {
+    "test": "eslint ."
+  },
+  "private": true
+}
